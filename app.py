@@ -83,15 +83,26 @@ elif choice == "ML":
             model_training = ModelTraining()
 
             try:
-                best_param,best_model,training_score,testing_score,metrics = model_training.initiate_model_training(train_data_preprocessed, test_data_preprocessed, problem)
+                # best_param,best_model,training_score,testing_score,metrics = model_training.initiate_model_training(train_data_preprocessed, test_data_preprocessed, problem)
+                models,best_model = model_training.initiate_model_training(train_data_preprocessed, test_data_preprocessed, problem)
                 end_time = datetime.now()
                 elapsed_time = (end_time - start_time).total_seconds()
                 progress_bar.progress(100)
                 time_placeholder.text(f"Total Time elapsed: {elapsed_time:.2f} seconds")
+                
+                max_algo = best_model["max_algo"]
+                metrics = best_model["metrics"]
+                training_score = best_model["max_score"]
+                testing_score = best_model["testing_score"]
 
-                st.code(best_param)
+                for model in models:
+                    st.code(models[model]["model_details"])
+                    st.write(f"With {metrics} score of {models[model][metrics]}")
 
-                st.success(f"Training completed with target variable: {st.session_state.target} with a {metrics} training score of : {training_score} and testing score : {testing_score} on {best_model} model")
+                str = f"Training completed with a {max_algo} with training {metrics} score of {training_score} and with testing score of {testing_score}"
+                st.success(str)
+
+
             except Exception as e:
                 st.error(f"Error during training: {e}")
                 progress_bar.progress(0)

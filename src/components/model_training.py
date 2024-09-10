@@ -35,6 +35,7 @@ class ModelTraining:
     
     def model(self,prob,X_train,y_train,X_test,y_test):
         models = {}
+        max_model = {}
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
         
@@ -176,21 +177,22 @@ class ModelTraining:
             
             if grid_search.best_score_ > max_score:
                 max_score = grid_search.best_score_
-                models['metrics'] = metrics
-                models["max_score"] = max_score
-                models["max_algo"] = model_name
-                models["best_model"] = best_model
-                models["best_params"] = best_params
+                max_model['metrics'] = metrics
+                max_model["max_score"] = max_score
+                max_model["max_algo"] = model_name
+                max_model["best_model"] = best_model
+                max_model["best_params"] = best_params
             
             models[model_name] = {
+                "metrics":metrics,
                 "model_name": model_name,
                 "model_details": best_model,
                 "model_params": best_params,
                 metrics: grid_search.best_score_
             }
         
-        best_model = models['best_model']
-        if algorithm[models["max_algo"]]["scale"] == 1:
+        best_model = max_model['best_model']
+        if algorithm[max_model["max_algo"]]["scale"] == 1:
             best_model.fit(X_train_scaled, y_train)
             y_pred = best_model.predict(X_test_scaled)
         else:
@@ -198,12 +200,15 @@ class ModelTraining:
             y_pred = best_model.predict(X_test)
         
         testing_score = 0
-        if models["metrics"] == 'r2':
+        if max_model["metrics"] == 'r2':
             testing_score = r2_score(y_test, y_pred)
         else:
             testing_score = accuracy_score(y_test, y_pred)
+        
+        max_model["testing_score"] = testing_score
 
-        return [models["best_model"],models["max_algo"],models['max_score'],testing_score,metrics]
+        # return [models["best_model"],models["max_algo"],models['max_score'],testing_score,metrics]
+        return models,max_model
 
 
     def initiate_model_training(self,train,test,prob):
